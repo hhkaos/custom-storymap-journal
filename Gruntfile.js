@@ -162,7 +162,7 @@
 					files: [{
 						expand: true,
 						cwd: 'src',
-						src:['resources/**'],
+						src:['resources/**', 'lib-app/cedar/**'],
 						dest: 'deploy/'
 					}]
 				},
