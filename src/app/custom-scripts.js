@@ -1,6 +1,7 @@
 define([
-  "dojo/topic"
-], function(topic) {
+  "dojo/topic",
+  "esri/tasks/query"
+], function(topic, Query) {
   /*
    * Custom Javascript to be executed while the application is initializing goes here
    */
@@ -26,50 +27,45 @@ define([
     if ( result.index !== null ){
       console.log("The map", result.id, "has been loaded from the section", result.index);
 
-      if ( result.id === "9545a91d0f284c6fb32f816e19925b35"){
-        // We are in 'Vision general'
-        var serviceUrl = "http://maps2.dcgis.dc.gov/dcgis/rest/services/SampleWorldCities/MapServer/0",
-        xField = "POP_CLASS",
-        toolTipTitle = "{POP_CLASS}";
-        // Creamos el gráfico con las propiedades:
+      if ( result.id === "b6f8eac09db9482084886803dc0ce376"){
+        // We are in 'Poblacion de Madrid'
+
+        // Recover layer.url from Web Map
+        var map = app.maps[result.id].response.map;
+        var layer = map.getLayer("Barrios de Madrid con población_3636");
+        var serviceUrl = layer.url;
+
+        // Config and display scatter plot
         var chart = new Cedar({
-          //Tipo de gráfico
-          "type": "bar",
-          //Dataset
-          "dataset": {
-            "url":serviceUrl,
-            //En esta query lo que hacemos es un conteo de las ciudades que hay en cada POP_CLASS
-            "query": {
-              "groupByFieldsForStatistics": xField,
-              "outStatistics": [{
-                "statisticType": "count",
-                "onStatisticField": "OBJECTID",
-                "outStatisticFieldName": "count_SUM"
-              }]
-            },
-            //En mappings definimos que representamos: En X cada POP_CLASS y en Y el conteo de las ciudades en cada POP_CLASS
-            "mappings":{
-              "x": {"field":xField,"label":"Rangos de población"},
-              "y": {"field":"count_SUM","label":"Número de ciudades"},
-              "sort": "count_SUM DESC"
-            }
-          },
-          //En tooltip definimos la ventana emergente al pasar el ratón por encima
+          "type": "scatter",
           "tooltip": {
-            "id": "tooltip-url",
-            "title": toolTipTitle,
-            "content": "{count_SUM} Ciudades"
+            "title": "{NOMBRE}",
+            "content": "Hay {MALES_CY} hombres y {FEMALES_CY} mujeres"
+          },
+          "dataset": {
+            url: serviceUrl,
+            "mappings": {
+              "x": {"field":"MALES_CY","label":"Nº de hombres"},
+              "y": {"field":"FEMALES_CY","label":"Nº de mujeres"},
+              "color": {"field":"NOMDIS","label":"Distrito"}
+            }
           }
         });
-        //Mostramos el gráfico
-        chart.show({
-          elementId: "#chart",
-          autolabels: true
+        chart.show({elementId: "#cedarChart", height: 400 });
+
+        // Add behaviour: zoom on click
+        chart.on("click", function(e,d){
+          var query = new Query();
+          query.objectIds = [d.OBJECTID];
+          query.outFields = [ "*" ];
+          layer.queryFeatures(query, function(featureSet) {
+            map.setExtent(featureSet.features[0]._extent);
+          });
         });
+
       }
     }else
     console.log("The map", result.id, "has been loaded from a Main Stage Action");
-
 
   });
 
