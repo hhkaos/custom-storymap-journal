@@ -65,10 +65,17 @@
 
 						/* Localization */
 						'i18n': '../lib-build/i18n',
+
+						'cedar': '../lib-app/cedar/cedar',
+						'd3': '../lib-app/cedar/d3.min',
+						'vega': '../lib-app/cedar/vega'
 					},
 					stubModules: [
 						'text',
 						'lib-build/tpl'
+					],
+					include: [
+						'cedar'
 					],
 					exclude: [
 						// 'underscore',
@@ -162,8 +169,13 @@
 					files: [{
 						expand: true,
 						cwd: 'src',
-						src:['resources/**', 'lib-app/cedar/**'],
+						src:['resources/**'],
 						dest: 'deploy/'
+					}, {
+						expand: true,
+						cwd: 'src/lib-app/cedar/charts/',
+						src: ['**'],
+						dest: 'deploy/app/charts/'
 					}]
 				},
 				commonResources: {
